@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Speed Master</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#10172a,#172554);
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 750px;
+  max-width: 100%;
+  background: #1e293b;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px #0008;
+}
+
+h1 {
+  text-align: center;
+  color: #38bdf8;
+  margin-bottom: 25px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.stat {
+  background: #334155;
+  padding: 15px;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.stat h2 {
+  color: #38bdf8;
+  margin-bottom: 5px;
+}
+
+.stat p {
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.paragraph {
+  background: #0f172a;
+  padding: 20px;
+  border-radius: 10px;
+  line-height: 2;
+  font-size: 18px;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+  min-height: 120px;
+}
+
+.correct {
+  color: #22c55e;
+}
+
+.incorrect {
+  color: #ef4444;
+  background: #7f1d1d;
+}
+
+textarea {
+  width: 100%;
+  height: 130px;
+  padding: 15px;
+  background: #334155;
+  color: white;
+  border: 2px solid #475569;
+  border-radius: 10px;
+  font-size: 17px;
+  resize: none;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: #38bdf8;
+}
+
+button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  background: #0284c7;
+  color: white;
+  border: none;
+  border-radius: 9px;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0369a1;
+}
+
+#result {
+  text-align: center;
+  margin-top: 20px;
+  color: #4ade80;
+  line-height: 1.8;
+}
+
+@media(max-width:500px) {
+  .container { padding: 18px; }
+  .stats { gap: 6px; }
+  .paragraph { font-size: 15px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>⌨️ Typing Speed Master</h1>
+
+<div class="stats">
+
+<div class="stat">
+<h2 id="time">60</h2>
+<p>Time Left</p>
+</div>
+
+<div class="stat">
+<h2 id="wpm">0</h2>
+<p>WPM</p>
+</div>
+
+<div class="stat">
+<h2 id="accuracy">100%</h2>
+<p>Accuracy</p>
+</div>
+
+</div>
+
+<div class="paragraph" id="text"></div>
+
+<textarea
+id="input"
+placeholder="Start typing here..."
+spellcheck="false"
+></textarea>
+
+<button onclick="restartGame()">Restart Test</button>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+const paragraphs = [
+ "JavaScript is a powerful programming language used to create interactive websites and web applications.",
+ "Learning programming requires consistent practice patience and problem solving skills.",
+ "Frontend development includes HTML CSS and JavaScript to build beautiful user interfaces.",
+ "Practice makes a programmer better every day. Keep learning and improve your coding skills."
+];
+
+let currentText = "";
+let time = 60;
+let timer = null;
+let started = false;
+
+const textElement = document.getElementById("text");
+const inputElement = document.getElementById("input");
+
+function loadParagraph() {
+
+ currentText =
+ paragraphs[Math.floor(Math.random() * paragraphs.length)];
+
+ textElement.innerHTML = "";
+
+ currentText.split("").forEach(char => {
+
+   const span = document.createElement("span");
+
+   span.innerText = char;
+
+   textElement.appendChild(span);
+
+ });
+
+}
+
+function startTimer() {
+
+ timer = setInterval(() => {
+
+   time--;
+
+   document.getElementById("time").innerText = time;
+
+   calculateResults();
+
+   if(time <= 0) {
+
+     clearInterval(timer);
+
+     inputElement.disabled = true;
+
+     showResult();
+
+   }
+
+ }, 1000);
+
+}
+
+inputElement.addEventListener("input", () => {
+
+ if(!started) {
+
+   started = true;
+
+   startTimer();
+
+ }
+
+ const typedText = inputElement.value;
+
+ const characters = textElement.querySelectorAll("span");
+
+ let correct = 0;
+
+ characters.forEach((span, index) => {
+
+   const typedChar = typedText[index];
+
+   span.className = "";
+
+   if(typedChar == null) {
+
+     span.style.color = "white";
+
+   }
+
+   else if(typedChar === currentText[index]) {
+
+     span.classList.add("correct");
+
+     correct++;
+
+   }
+
+   else {
+
+     span.classList.add("incorrect");
+
+   }
+
+ });
+
+ calculateResults();
+
+ if(typedText === currentText) {
+
+   clearInterval(timer);
+
+   inputElement.disabled = true;
+
+   showResult();
+
+ }
+
+});
+
+function calculateResults() {
+
+ const typedText = inputElement.value;
+
+ const correctChars = [...typedText].filter(
+   (char,index) => char === currentText[index]
+ ).length;
+
+ const elapsedTime = 60 - time;
+
+ const minutes = Math.max(elapsedTime / 60, 1 / 60);
+
+ const wpm = Math.round(
+   (correctChars / 5) / minutes
+ );
+
+ const accuracy = typedText.length === 0
+   ? 100
+   : Math.round(
+       (correctChars / typedText.length) * 100
+     );
+
+ document.getElementById("wpm").innerText = wpm;
+
+ document.getElementById("accuracy").innerText =
+   accuracy + "%";
+
+}
+
+function showResult() {
+
+ calculateResults();
+
+ document.getElementById("result").innerHTML =
+   "🎉 Test Completed!<br>" +
+   "Your Typing Speed: " +
+   document.getElementById("wpm").innerText +
+   " WPM<br>" +
+   "Accuracy: " +
+   document.getElementById("accuracy").innerText;
+
+}
+
+function restartGame() {
+
+ clearInterval(timer);
+
+ time = 60;
+
+ started = false;
+
+ inputElement.disabled = false;
+
+ inputElement.value = "";
+
+ document.getElementById("time").innerText = 60;
+
+ document.getElementById("wpm").innerText = 0;
+
+ document.getElementById("accuracy").innerText = "100%";
+
+ document.getElementById("result").innerHTML = "";
+
+ loadParagraph();
+
+ inputElement.focus();
+
+}
+
+restartGame();
+
+</script>
+
+</body>
+</html>
